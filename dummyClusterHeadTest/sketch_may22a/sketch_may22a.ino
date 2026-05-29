@@ -190,6 +190,14 @@ void setup(){
   }
   esp_now_register_recv_cb(OnDataRecv);
 
+  // ADD THE BROADCAST ADDRESS AS A PEER
+  esp_now_peer_info_t broadcastPeer;
+  memset(&broadcastPeer, 0, sizeof(broadcastPeer));
+  memcpy(broadcastPeer.peer_addr, broadcastAddress, 6);
+  broadcastPeer.channel = 1; // Forcing channel 1 as requested
+  broadcastPeer.encrypt = false;
+  esp_now_add_peer(&broadcastPeer);
+
   Serial.println("[DEFAULT] ESP32 Board MAC Address: ");
   readMacAddress();
   Serial.println("\nClusterhead stand-in ready.");

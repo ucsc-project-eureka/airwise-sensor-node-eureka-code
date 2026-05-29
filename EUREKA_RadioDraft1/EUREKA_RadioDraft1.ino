@@ -70,7 +70,7 @@ void handleDiscoveryPacket(const uint8_t *senderMAC, const discoveryPacket_t *pa
 
     // Register clusterhead as peer now that we have its MAC
     memcpy(peerInfo.peer_addr, clusterheadMAC, 6);
-    peerInfo.channel = 2;
+    peerInfo.channel = 1;
     peerInfo.encrypt = false;
     esp_now_add_peer(&peerInfo);
   }
@@ -115,18 +115,22 @@ bool getDataFromCoproc(sensorDataPacket_t* dataPacket) {
 
 // ESP32 correct callback
 void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData, int len) {
+  Serial.println("DEBUG3");
   const uint8_t *senderMac = recv_info->src_addr; // source MAC address.
   uint8_t packetType = incomingData[0];
   switch (packetType) {
     case DISCOVERY:
       if (len >= sizeof(discoveryPacket_t))
         handleDiscoveryPacket(senderMac, (const discoveryPacket_t *)incomingData);
+        Serial.println("DISCOVERY PACKET");
       break;
     case TDMA_SCHEDULE:
       if (len >= sizeof(tdmaSchedulePacket_t))
         handleSchedulePacket(senderMac, (const tdmaSchedulePacket_t *)incomingData);
+              Serial.println("TDMASCHEDULE");
       break;
     default:
+    Serial.println("DEBUG3");
       break;
   }
 }
@@ -136,6 +140,8 @@ void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData,
 void setup(){
   Serial.begin(9600);
 
+  Serial.println("DEBUG1");
+
   WiFi.disconnect(true);
   delay(1000);
   WiFi.mode(WIFI_STA);
@@ -143,7 +149,10 @@ void setup(){
   if (esp_now_init() != ESP_OK) {
     return;
   }
+  Serial.println("DEBUG-1");
   esp_now_register_recv_cb(OnDataRecv);
+  Serial.println("DEBUG2");
+  Serial.println("DEBUG2no1");
 }
 
 void loop() {
@@ -153,11 +162,12 @@ void loop() {
     // Wait for coproc to respond.
     sensorDataPacket_t dataPacket;
     unsigned long timeout = millis() + 2000;
-    while (!getDataFromCoproc(&dataPacket) && millis() < timeout);
+    // while (!getDataFromCoproc(&dataPacket) && millis() < timeout);
     // Only send if we actually got data
-    if (millis() < timeout) {
-      esp_now_send(clusterheadMAC, (uint8_t *)&dataPacket, sizeof(dataPacket));
-    }
+    dataPacket.type = SENSOR_DATA;
+    dataPacket.temperature = 1.0;
+    Serial.println("Sending");
+    esp_now_send(clusterheadMAC, (uint8_t *)&dataPacket, sizeof(dataPacket));
     scheduleReceived = false;
   }
 }
