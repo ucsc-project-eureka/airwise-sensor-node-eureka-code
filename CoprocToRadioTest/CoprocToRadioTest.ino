@@ -21,8 +21,8 @@ Uart ESP32Serial(&sercom0, ESP_PIN_RX, ESP_PIN_TX, SERCOM_RX_PAD_3, UART_TX_PAD_
 // Helpers -------------------------------------------------------------------------
 
 // MAIN ----------------------------------------------------------------------------
-int startTime;
-int currentTime;
+int startTime = 0;
+int lastTime = 0;
 
 void setup() {
   // turn on the radio from the coproc
@@ -49,7 +49,7 @@ void loop() {
   currentTime = millis();
   // Send message every five seconds.
   // fire every interval of WAIT_TIME
-  
+
   // if((currentTime-startTime)%WAIT_TIME == 0){
   //   startTime = currentTime; // reset time markers.
   //   ESP32Serial.println("Hello ESP32 from Coproc!\n");

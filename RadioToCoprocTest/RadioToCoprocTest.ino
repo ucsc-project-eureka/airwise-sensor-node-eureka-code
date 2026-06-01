@@ -1,4 +1,4 @@
-// Heltec wireless shell (V3) board.
+// Only runs on ESP32S3 Dev Module board for debug port access.
 
 #include <WiFi.h>
 #include <esp_now.h>
@@ -14,39 +14,39 @@ bool sinkMACKnown = false;
 #define ESP_PIN_TX 16
 #define ESP_PIN_RX 15
 
-// Pins/custom serial port for the ESP32 - Credit, Airwise team
+// Pins/custom serial port for the ESP32
 HardwareSerial COPROC_SERIAL(1);
 
 // MAIN --------------------------------------------------------------
 
-int startTime;
-int currentTime;
+int lastTime = 0;
+int currentTime = 0;
 void setup() {
   Serial.begin(9600);
-  COPROC_SERIAL.begin(9600,SERIAL_8N1,ESP_PIN_TX,ESP_PIN_TX);
+  while(!Serial){;}
+  Serial.println("Serial connected!");
+
+  COPROC_SERIAL.begin(9600,SERIAL_8N1,ESP_PIN_RX,ESP_PIN_TX);
 
   WiFi.disconnect(true);
   WiFi.mode(WIFI_STA);
 
   if(esp_now_init() != ESP_OK){
+    Serial.println("ESP-NOW init failed!");
     return;
   }
+
   Serial.println("ESP32 radio serial ready");
-  startTime = millis();
-  currentTime = startTime;
 }
 
 void loop() {
   currentTime = millis();
 
   // send the pulse via serial.
-  if((currentTime - startTime)%WAIT_TIME == 0){
+  if((currentTime - lastTime)>=WAIT_TIME){
     COPROC_SERIAL.println("Hello Coproc from ESP32");
     Serial.println("Hello Coproc sent!\n");
-  }
-  // Otherwise, add the loading dots every second.
-  else if((currentTime-startTime)%SECOND_TIME == 0){
-    Serial.println(".");
+    lastTime = currentTime;
   }
   // // Read whatever's sent back.
   // if(COPROC_SERIAL.available()){
