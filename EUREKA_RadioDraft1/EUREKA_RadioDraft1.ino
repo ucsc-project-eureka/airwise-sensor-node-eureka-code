@@ -135,6 +135,28 @@ void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData,
   }
 }
 
+void testCoproc() {
+  static unsigned long lastTest = 0;
+  if (millis() - lastTest < 5000) return;
+  lastTest = millis();
+
+  Serial.println("SENSOR_DATA");
+
+  sensorDataPacket_t dataPacket;
+  if (getDataFromCoproc(&dataPacket)) {
+    Serial.print("GOT DATA - Temp: ");
+    Serial.print(dataPacket.temperature);
+    Serial.print(" Hum: ");
+    Serial.print(dataPacket.humidity);
+    Serial.print(" Soil: ");
+    Serial.print(dataPacket.soilMoisture);
+    Serial.print(" Time: ");
+    Serial.println(dataPacket.timestamp);
+  } else {
+    Serial.println("NO DATA");
+  }
+}
+
 // MAIN --------------------------------------------------------------------
 
 void setup(){
@@ -149,25 +171,32 @@ void setup(){
   if (esp_now_init() != ESP_OK) {
     return;
   }
-  Serial.println("DEBUG-1");
   esp_now_register_recv_cb(OnDataRecv);
-  Serial.println("DEBUG2");
-  Serial.println("DEBUG2no1");
 }
 
 void loop() {
-  if (scheduleReceived && hasJoined && millis() >= scheduledSlotTime){
-    // Trigger the corproc to send sensor data to ESP32.
-    Serial.println("SENSOR_DATA");
-    // Wait for coproc to respond.
-    sensorDataPacket_t dataPacket;
-    unsigned long timeout = millis() + 2000;
-    // while (!getDataFromCoproc(&dataPacket) && millis() < timeout);
-    // Only send if we actually got data
-    dataPacket.type = SENSOR_DATA;
-    dataPacket.temperature = 1.0;
-    Serial.println("Sending");
-    esp_now_send(clusterheadMAC, (uint8_t *)&dataPacket, sizeof(dataPacket));
-    scheduleReceived = false;
-  }
+    Serial.println("ESP32 ALIVE");
+    delay(1000);
+//   while (Serial.available()) {
+
+//     char c = Serial.read();
+
+//     Serial.write(c);
+
+// }
+//   testCoproc();
+//   if (scheduleReceived && hasJoined && millis() >= scheduledSlotTime){
+//     // Trigger the corproc to send sensor data to ESP32.
+//     Serial.println("SENSOR_DATA");
+//     // Wait for coproc to respond.
+//     sensorDataPacket_t dataPacket;
+//     unsigned long timeout = millis() + 2000;
+//     // while (!getDataFromCoproc(&dataPacket) && millis() < timeout);
+//     // Only send if we actually got data
+//     dataPacket.type = SENSOR_DATA;
+//     dataPacket.temperature = 1.0;
+//     Serial.println("Sending");
+//     esp_now_send(clusterheadMAC, (uint8_t *)&dataPacket, sizeof(dataPacket));
+//     scheduleReceived = false;
+//   }
 }
