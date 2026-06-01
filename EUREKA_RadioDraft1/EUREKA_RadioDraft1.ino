@@ -3,12 +3,22 @@
 NOTE: 
 Heltec Wireless Shell (V3) board on the aurduino platform.
 */
-
+#include <Wire.h>
+#include <SPI.h>
 #include <esp_now.h>
 #include <WiFi.h>
+#include "wiring_private.h" // Necessary for pin peripheral multiplexing (from Sankie)
+#include <HardwareSerial.h>
 
 #define MAX_SENSOR_NODES 3
 #define TDMA_SLOT_TIME 1000
+
+// From Airwise's ESP32 UART connections.
+#define ESP_PIN_TX 16
+#define ESP_PIN_RX 15
+
+// Pins/custom serial port for the ESP32 - Credit, Airwise team
+HardwareSerial COPROC_SERIAL(1);
 
 unsigned long scheduledSlotTime = 0;
 
@@ -98,8 +108,8 @@ void handleSchedulePacket(const uint8_t *senderMAC, const tdmaSchedulePacket_t *
 
 // Reads data from Serial UART prints and parses into packet.
 bool getDataFromCoproc(sensorDataPacket_t* dataPacket) {
-  if (Serial.available()) {
-    String header = Serial.readStringUntil('\n');
+  if (COPROC_SERIAL.available()) {
+    String header = COPROC_SERIAL.readStringUntil('\n');
     header.trim();
     if (header == "SENSOR_DATA:") {
       dataPacket->type        = SENSOR_DATA;
@@ -135,6 +145,7 @@ void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData,
 
 void setup(){
   Serial.begin(9600);
+  COPROC_SERIAL.begin(9600, SERIAL_8N1, ESP_PIN_TX, ESP_PIN_RX);
 
   WiFi.disconnect(true);
   delay(1000);

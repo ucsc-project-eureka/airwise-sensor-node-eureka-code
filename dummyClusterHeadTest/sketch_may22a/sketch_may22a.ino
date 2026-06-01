@@ -2,7 +2,6 @@
 NOTE: This should be compiled with the Heltec Wireless Shell (V3) in order to get responses from the esp32.
 */
 
-
 #include <WiFi.h>
 #include <esp_now.h>
 #include <esp_wifi.h>

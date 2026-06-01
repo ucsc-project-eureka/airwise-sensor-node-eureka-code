@@ -44,8 +44,8 @@ SFE_UBLOX_GNSS myGNSS;
 #define BME_CS 10
 
 // From Airwise's ESP32 UART connections.
-#define ESP_PIN_TX 15
-#define ESP_PIN_RX 16
+#define ESP_PIN_TX 8
+#define ESP_PIN_RX 9
 
 // Reference values for sensor data processing.
 #define SEALEVELPRESSURE_HPA (1013.25)
