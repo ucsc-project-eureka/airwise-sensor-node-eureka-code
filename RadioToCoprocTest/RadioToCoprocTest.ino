@@ -1,3 +1,4 @@
+// Radio sends message to the coproc every five seconds.
 /*
  * - Mode: TEXTMSG
  * - Baud rate: 38400
@@ -5,63 +6,65 @@
  * - TX GPIO: 43
  */
 
-#define DEBUG_PORT Serial
+#define DEBUG_PORT SerialUSB
 #define ESP_PORT  Serial1
 
 constexpr uint32_t DEBUG_BAUD = 115200;
 constexpr uint32_t ESP_BAUD = 9600;
+constexpr uint32_t SEND_PERIOD_MS = 5000;
 
-constexpr size_t RECEIVE_BUFFER_SIZE = 256;
+constexpr size_t MESSAGE_BUFFER_SIZE = 96;
 
-char receiveBuffer[RECEIVE_BUFFER_SIZE];
-size_t receiveLength = 0;
+uint32_t packetCounter = 0;
+uint32_t lastSendMs = 0;
 
 void setup() {
-
   DEBUG_PORT.begin(DEBUG_BAUD);
   uint32_t start = millis();
+  
+  // wait 3 seconds while initializing.
   while (!DEBUG_PORT && (millis() - start < 3000));
 
   DEBUG_PORT.println();
-  DEBUG_PORT.print("Debug serial1 on, baud rate: ");
+  DEBUG_PORT.print("Debug serial on, baud rate: ");
   DEBUG_PORT.println(DEBUG_BAUD);
 
-  ESP_PORT.begin(ESP_BAUD,SERIAL_8N1, 44, 43);
+  ESP_PORT.begin(ESP_BAUD, SERIAL_8N1, 44, 43);
   DEBUG_PORT.println();
   DEBUG_PORT.print("ESP UART on, baud rate: ");
-  DEBUG_PORT.println(ESP_BAUD);}
+  DEBUG_PORT.println(ESP_BAUD);
+
+  // just in case
+  delay(5000);
+
+  DEBUG_PORT.println();
+  DEBUG_PORT.print("Sending test message every ");
+  DEBUG_PORT.print(SEND_PERIOD_MS);
+  DEBUG_PORT.println(" ms.");
+}
 
 void loop() {
-  while (ESP_PORT.available()) {
-    char c = ESP_PORT.read();
+  uint32_t now = millis();
 
-    // raw output
-    // DEBUG_PORT.write(c);
+  if (now - lastSendMs >= SEND_PERIOD_MS) {
+    lastSendMs = now;
+    packetCounter++;
 
-    if (c == '\r') {
-      continue;
-    }
+    char message[MESSAGE_BUFFER_SIZE];
 
-    //message complete, marked by newline
-    if (c == '\n') {
-      if (receiveLength > 0) {
-        receiveBuffer[receiveLength] = '\0';
+    // formats message 
+    // snprintf(destination, maxSize, formatString, values)
+    snprintf(
+      message,
+      sizeof(message),
+      "RADIO_TO_COPROC_TEST packet=%lu uptime_ms=%lu",
+      (unsigned long)packetCounter,
+      (unsigned long)now
+    );
 
-        DEBUG_PORT.print("Received from coproc: ");
-        DEBUG_PORT.println(receiveBuffer);
+    ESP_PORT.println(message);
 
-        receiveLength = 0;
-      }
-
-      continue;
-    }
-
-    //add next char to buffer
-    if (receiveLength < RECEIVE_BUFFER_SIZE - 1) {
-      receiveBuffer[receiveLength++] = c;
-    } else {
-      DEBUG_PORT.println("BUFFER OVERFLOW, CLEARING");
-      receiveLength = 0;
-    }
+    DEBUG_PORT.print("Sent to Coproc (Serial1): ");
+    DEBUG_PORT.println(message);
   }
 }

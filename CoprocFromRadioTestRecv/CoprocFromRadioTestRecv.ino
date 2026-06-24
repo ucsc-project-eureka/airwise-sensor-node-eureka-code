@@ -1,7 +1,7 @@
-// Coproc sends message to the radio to be broadcast every five seconds.
+// Coproc recieves message to the radio and repeats what it recieved to its debug serial.
 /*
  * - Mode: TEXTMSG
- * - esp Baud rate: 9600
+ * - Baud rate: 38400
  * - RX GPIO: 44
  * - TX GPIO: 43
  */
@@ -34,38 +34,39 @@ void setup() {
   DEBUG_PORT.println();
   DEBUG_PORT.print("ESP UART on, baud rate: ");
   DEBUG_PORT.println(ESP_BAUD);
-
-  // just in case
-  delay(5000);
-
-  DEBUG_PORT.println();
-  DEBUG_PORT.print("Sending test message every ");
-  DEBUG_PORT.print(SEND_PERIOD_MS);
-  DEBUG_PORT.println(" ms.");
 }
 
 void loop() {
-  uint32_t now = millis();
+  while (ESP_PORT.available()) {
+    char c = ESP_PORT.read();
 
-  if (now - lastSendMs >= SEND_PERIOD_MS) {
-    lastSendMs = now;
-    packetCounter++;
+    // raw output
+    // DEBUG_PORT.write(c);
 
-    char message[MESSAGE_BUFFER_SIZE];
+    if (c == '\r') {
+      continue;
+    }
 
-    // formats message 
-    // snprintf(destination, maxSize, formatString, values)
-    snprintf(
-      message,
-      sizeof(message),
-      "COPROC_TEST packet=%lu uptime_ms=%lu",
-      (unsigned long)packetCounter,
-      (unsigned long)now
-    );
+    //message complete, marked by newline
+    if (c == '\n') {
+      if (receiveLength > 0) {
+        receiveBuffer[receiveLength] = '\0';
 
-    ESP_PORT.println(message);
+        DEBUG_PORT.print("Received from radio: ");
+        DEBUG_PORT.println(receiveBuffer);
 
-    DEBUG_PORT.print("Sent to ESP32 (Serial1): ");
-    DEBUG_PORT.println(message);
+        receiveLength = 0;
+      }
+
+      continue;
+    }
+
+    //add next char to buffer
+    if (receiveLength < RECEIVE_BUFFER_SIZE - 1) {
+      receiveBuffer[receiveLength++] = c;
+    } else {
+      DEBUG_PORT.println("BUFFER OVERFLOW, CLEARING");
+      receiveLength = 0;
+    }
   }
 }
