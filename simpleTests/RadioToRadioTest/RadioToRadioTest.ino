@@ -34,6 +34,13 @@ struct sensorDataPacket_t {
 int lastTime = 0;
 int currentTime = 0;
 int messageCount = 0;
+// construct generic data.
+  sensorDataPacket_t myData = {
+    .type = SENSOR_DATA,
+    .temperature = 10,
+    .humidity = 20,
+    .timestamp = 0
+  };
 void setup(){
   Serial.begin(9600);
   while(!Serial){;}
@@ -47,15 +54,6 @@ void setup(){
   }
 
   Serial.println("ESP32 radio serial ready");
-
-  // construct generic data.
-  sensorDataPacket_t myData = {
-    .type = SENSOR_DATA,
-    .temperature = 10,
-    .humidity = 20,
-    .temperature = 30,
-    .timestamp = 0
-  };
 }
 
 void loop() {
@@ -66,7 +64,7 @@ void loop() {
 
   // execute sending task. broadcast for ease of reception.
   // send ptr to message.
-  esp_now_send(broadcastAddress, &myData, sizeof(myData));
+  esp_now_send(broadcastAddress, (uint8_t*)&myData, sizeof(myData));
 
   // once they are equal, set to equal. then restart loop iteration.
   lastTime = currentTime;
