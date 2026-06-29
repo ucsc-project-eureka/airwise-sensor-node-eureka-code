@@ -39,8 +39,11 @@ int messageCount = 0;
     .type = SENSOR_DATA,
     .temperature = 10,
     .humidity = 20,
+    .soilMoisture = 300,
     .timestamp = 0
   };
+
+
 void setup(){
   Serial.begin(9600);
   while(!Serial){;}
@@ -65,6 +68,9 @@ void loop() {
   // execute sending task. broadcast for ease of reception.
   // send ptr to message.
   esp_now_send(broadcastAddress, (uint8_t*)&myData, sizeof(myData));
+
+
+  
 
   // once they are equal, set to equal. then restart loop iteration.
   lastTime = currentTime;
