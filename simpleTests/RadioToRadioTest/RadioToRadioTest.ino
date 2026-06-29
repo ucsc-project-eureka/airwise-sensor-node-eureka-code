@@ -53,6 +53,7 @@ void setup(){
   DEBUG_PORT.println("DEBUG_PORT connected!");
   WiFi.disconnect(true);
   WiFi.mode(WIFI_STA);
+  esp_now_add_peer(broadcastAddress);
 
   if(esp_now_init() != ESP_OK){
     DEBUG_PORT.println("ESP-NOW init failed!");
@@ -71,7 +72,8 @@ void loop() {
   // execute sending task. broadcast for ease of reception.
   // send ptr to message.
   esp_now_send(broadcastAddress, (uint8_t*)&myData, sizeof(myData));
-  
+
+  // print check what you're sending
   DEBUG_PORT.println("Sent message:");
   char buffer[BUFFER_SIZE];
   snprintf(buffer, BUFFER_SIZE, "\

@@ -1,5 +1,6 @@
 // Note: Set this with an ESP32 s3 dev module.
 // Code as an esp32 radio to esp32 radio test receiving protocol.
+// You must enable CDC on boot in sketch settings.
 
 #include <WiFi.h>
 #include <esp_now.h>
@@ -48,6 +49,7 @@ void onDataRecv(const esp_now_recv_info* recv_info, const uint8_t* incomingData,
     Humidity: %f\
     Soil Moisture: %u\
     Time sent: %lu", temp, h, s, time);
+    DEBUG_PORT.println(buffer);
   }
 }
 
