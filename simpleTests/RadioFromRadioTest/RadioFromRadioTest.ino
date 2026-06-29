@@ -32,21 +32,22 @@ struct sensorDataPacket_t {
 
 // Helpers -----------------------------------------------------------------
 
-void onDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData, int len){
+void onDataRecv(const esp_now_recv_info* recv_info, const uint8_t* incomingData, int len){
   uint8_t packetType = incomingData[0];
   if (packetType == SENSOR_DATA){
     DEBUG_PORT.println("Recieved data packet!");
-    sensorDataPacket_t pkt = *incomingData;
-    uint8_t temp = pkt.temperature;
+    sensorDataPacket_t pkt;
+    memcpy(&pkt, incomingData, sizeof(pkt));
+    float temp = pkt.temperature;
     float h = pkt.humidity;
     uint16_t s = pkt.soilMoisture;
-    unsigned long time = pkt.timeStamp;
+    unsigned long time = pkt.timestamp;
     char buffer[BUFFER_SIZE];
-    snprintf(&buffer, BUFFER_SIZE, "
-    \n Temperature: %u
-    \n Humidity: %f
-    \n Soil Moisture: %u
-    \n Time sent: %lu", temp, h, s, time);
+    snprintf(buffer, BUFFER_SIZE, "\
+    Temperature: %f\
+    Humidity: %f\
+    Soil Moisture: %u\
+    Time sent: %lu", temp, h, s, time);
   }
 }
 
