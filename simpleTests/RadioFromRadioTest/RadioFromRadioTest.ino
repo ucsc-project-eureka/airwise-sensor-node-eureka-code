@@ -48,6 +48,7 @@ void onDataRecv(const esp_now_recv_info* recv_info, const uint8_t* incomingData,
     Humidity: %f\
     Soil Moisture: %u\
     Time sent: %lu", temp, h, s, time);
+    DEBUG_PORT.println(buffer);
   }
 }
 
