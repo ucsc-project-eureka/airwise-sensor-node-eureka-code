@@ -60,7 +60,7 @@ void setup(){
 }
 
 void loop() {
-  // ping an outside ESP32 with hellos. wait every five seconds.
+  // ping an outside ESP32 with data packets. wait every five seconds.
   while (currentTime - lastTime < WAIT_TIME){
     currentTime = millis();
   }
@@ -74,5 +74,4 @@ void loop() {
 
   // once they are equal, set to equal. then restart loop iteration.
   lastTime = currentTime;
-
 }

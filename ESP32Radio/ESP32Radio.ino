@@ -1,7 +1,6 @@
 
 /*
-NOTE: 
-Heltec Wireless Shell (V3) board on the aurduino platform.
+NOTE: Compile this with the ESP32 s3 dev module Arduino board.
 */
 #include <Wire.h>
 #include <SPI.h>
